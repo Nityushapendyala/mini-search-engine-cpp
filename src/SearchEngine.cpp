@@ -32,7 +32,7 @@ void SearchEngine::buildIndex(const vector<Document>& documents) {
 
     invertedIndex.clear();
 
-    // Store original documents for phrase searching
+    // Store original documents
     indexedDocuments = documents;
 
     totalDocuments = static_cast<int>(documents.size());
@@ -284,6 +284,11 @@ void SearchEngine::search(string query, int mode) {
              << fixed << setprecision(4)
              << result.second << endl;
 
+        // Display search snippet
+        cout << "   Snippet: "
+             << getSnippet(result.first, query)
+             << endl;
+
         rank++;
     }
 
@@ -322,7 +327,6 @@ bool SearchEngine::containsPhrase(
     const string& filename
 ) {
 
-    // Find the requested document
     auto docIt = find_if(
         indexedDocuments.begin(),
         indexedDocuments.end(),
@@ -335,7 +339,6 @@ bool SearchEngine::containsPhrase(
         return false;
     }
 
-    // Normalize the phrase
     string normalizedPhrase;
     stringstream phraseStream(phrase);
     string word;
@@ -358,7 +361,6 @@ bool SearchEngine::containsPhrase(
         return false;
     }
 
-    // Normalize document content
     string normalizedContent;
     stringstream contentStream(docIt->content);
 
@@ -376,7 +378,97 @@ bool SearchEngine::containsPhrase(
         }
     }
 
-    // Check exact phrase
     return normalizedContent.find(normalizedPhrase)
            != string::npos;
+}
+
+// Generate a search snippet
+string SearchEngine::getSnippet(
+    const string& filename,
+    const string& query
+) {
+
+    // Find the document
+    auto docIt = find_if(
+        indexedDocuments.begin(),
+        indexedDocuments.end(),
+        [&filename](const Document& doc) {
+            return doc.filename == filename;
+        }
+    );
+
+    if (docIt == indexedDocuments.end()) {
+        return "Document not found.";
+    }
+
+    const string& content = docIt->content;
+
+    // Extract query keywords
+    stringstream queryStream(query);
+    string word;
+    vector<string> keywords;
+
+    while (queryStream >> word) {
+
+        word = cleanWord(word);
+
+        if (!word.empty() &&
+            stopWords.find(word) == stopWords.end()) {
+
+            keywords.push_back(word);
+        }
+    }
+
+    // Convert content to lowercase for matching
+    string lowerContent = content;
+
+    transform(
+        lowerContent.begin(),
+        lowerContent.end(),
+        lowerContent.begin(),
+        [](unsigned char c) {
+            return static_cast<char>(tolower(c));
+        }
+    );
+
+    // Find the earliest matching keyword
+    size_t matchPosition = string::npos;
+
+    for (const string& keyword : keywords) {
+
+        size_t position = lowerContent.find(keyword);
+
+        if (position != string::npos &&
+            (matchPosition == string::npos ||
+             position < matchPosition)) {
+
+            matchPosition = position;
+        }
+    }
+
+    // If no keyword matches, start from beginning
+    if (matchPosition == string::npos) {
+        matchPosition = 0;
+    }
+
+    // Extract surrounding text
+    const size_t contextLength = 35;
+
+    size_t start = matchPosition > contextLength
+        ? matchPosition - contextLength
+        : 0;
+
+    const size_t snippetLength = 120;
+
+    string snippet = content.substr(start, snippetLength);
+
+    if (start > 0) {
+        snippet = "..." + snippet;
+    }
+
+    if (start + snippetLength < content.length()) {
+        snippet += "...";
+    }
+
+    return snippet;
 }
