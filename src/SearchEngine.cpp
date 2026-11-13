@@ -12,11 +12,9 @@ using namespace std;
 
 // Clean words: lowercase and remove punctuation
 string SearchEngine::cleanWord(string word) {
-
     string result;
 
     for (char ch : word) {
-
         unsigned char c = static_cast<unsigned char>(ch);
 
         if (isalnum(c)) {
@@ -30,6 +28,7 @@ string SearchEngine::cleanWord(string word) {
 // Build the inverted index
 void SearchEngine::buildIndex(const vector<Document>& documents) {
 
+    invertedIndex.clear();
     totalDocuments = static_cast<int>(documents.size());
 
     for (const Document& doc : documents) {
@@ -50,7 +49,7 @@ void SearchEngine::buildIndex(const vector<Document>& documents) {
     }
 }
 
-// Calculate TF-IDF score
+// Calculate TF-IDF score for a term in a document
 double SearchEngine::calculateTFIDF(
     string word,
     string filename
@@ -68,19 +67,36 @@ double SearchEngine::calculateTFIDF(
         return 0.0;
     }
 
-    // Term frequency
     double tf = 1.0 + log(docIt->second);
 
-    // Document frequency
     int df = static_cast<int>(wordIt->second.size());
 
-    // Inverse document frequency
     double idf = log(
         static_cast<double>(totalDocuments + 1) /
         static_cast<double>(df + 1)
     ) + 1.0;
 
     return tf * idf;
+}
+
+// Calculate the length of a document's TF-IDF vector
+double SearchEngine::calculateDocumentNorm(
+    const string& filename
+) {
+
+    double sumSquares = 0.0;
+
+    for (const auto& wordEntry : invertedIndex) {
+
+        double weight = calculateTFIDF(
+            wordEntry.first,
+            filename
+        );
+
+        sumSquares += weight * weight;
+    }
+
+    return sqrt(sumSquares);
 }
 
 // Display index statistics
@@ -98,7 +114,7 @@ void SearchEngine::displayStatistics() {
          << stopWords.size() << endl;
 }
 
-// Perform AND / OR search with TF-IDF ranking
+// Perform AND / OR search using cosine similarity
 void SearchEngine::search(string query, int mode) {
 
     stringstream ss(query);
@@ -128,22 +144,55 @@ void SearchEngine::search(string query, int mode) {
         return;
     }
 
-    // Document filename -> TF-IDF score
-    unordered_map<string, double> scores;
+    // Calculate query TF-IDF weights
+    unordered_map<string, double> queryWeights;
 
-    // Calculate relevance scores
     for (const string& keyword : keywords) {
 
         auto it = invertedIndex.find(keyword);
 
-        if (it == invertedIndex.end()) {
-            continue;
+        if (it != invertedIndex.end()) {
+
+            double idf = log(
+                static_cast<double>(totalDocuments + 1) /
+                static_cast<double>(it->second.size() + 1)
+            ) + 1.0;
+
+            queryWeights[keyword] = idf;
         }
+    }
 
-        for (const auto& entry : it->second) {
+    if (queryWeights.empty()) {
+        cout << "No matching documents found.\n";
+        cout << "Results found: 0\n";
+        return;
+    }
 
-            scores[entry.first] +=
-                calculateTFIDF(keyword, entry.first);
+    // Calculate query vector norm
+    double queryNorm = 0.0;
+
+    for (const auto& entry : queryWeights) {
+        queryNorm += entry.second * entry.second;
+    }
+
+    queryNorm = sqrt(queryNorm);
+
+    // Calculate document similarity scores
+    unordered_map<string, double> scores;
+
+    for (const auto& queryEntry : queryWeights) {
+
+        const string& keyword = queryEntry.first;
+
+        auto wordIt = invertedIndex.find(keyword);
+
+        for (const auto& documentEntry : wordIt->second) {
+
+            const string& filename = documentEntry.first;
+
+            scores[filename] +=
+                calculateTFIDF(keyword, filename) *
+                queryEntry.second;
         }
     }
 
@@ -174,11 +223,22 @@ void SearchEngine::search(string query, int mode) {
     }
 
     if (scores.empty()) {
-
         cout << "No matching documents found.\n";
         cout << "Results found: 0\n";
-
         return;
+    }
+
+    // Normalize scores using cosine similarity
+    for (auto& entry : scores) {
+
+        double documentNorm =
+            calculateDocumentNorm(entry.first);
+
+        if (documentNorm > 0.0 && queryNorm > 0.0) {
+            entry.second /= (documentNorm * queryNorm);
+        } else {
+            entry.second = 0.0;
+        }
     }
 
     // Convert scores into sortable vector
@@ -188,7 +248,7 @@ void SearchEngine::search(string query, int mode) {
         results.push_back({entry.first, entry.second});
     }
 
-    // Sort by highest TF-IDF score
+    // Sort by highest similarity
     sort(results.begin(), results.end(),
          [](const pair<string, double>& a,
             const pair<string, double>& b) {
@@ -204,7 +264,7 @@ void SearchEngine::search(string query, int mode) {
          << (mode == 1 ? "OR Search" : "AND Search")
          << endl;
 
-    cout << "\nTF-IDF Ranked Documents:\n";
+    cout << "\nCosine Similarity Ranked Documents:\n";
 
     int rank = 1;
 
@@ -212,7 +272,7 @@ void SearchEngine::search(string query, int mode) {
 
         cout << rank << ". "
              << result.first
-             << " | TF-IDF Score: "
+             << " | Similarity Score: "
              << fixed << setprecision(4)
              << result.second << endl;
 

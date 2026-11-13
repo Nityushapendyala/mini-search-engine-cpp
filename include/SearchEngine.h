@@ -10,6 +10,7 @@
 
 class SearchEngine {
 private:
+
     std::unordered_map<
         std::string,
         std::unordered_map<std::string, int>
@@ -32,14 +33,18 @@ private:
         std::string filename
     );
 
+    double calculateDocumentNorm(
+        const std::string& filename
+    );
+
 public:
+
     void buildIndex(const std::vector<Document>& documents);
 
     void displayStatistics();
 
     void search(std::string query, int mode);
 
-    // New testing functions
     bool hasKeyword(const std::string& keyword);
 
     bool containsDocument(
