@@ -2,3 +2,5 @@
 *.o
 *.out
 .vscode/
+compile-log.txt
+test.cpp
