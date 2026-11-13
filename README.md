@@ -230,3 +230,52 @@ GitHub: [Nityushapendyala](https://github.com/Nityushapendyala)
 ## Repository
 
 [Mini Search Engine - C++](https://github.com/Nityushapendyala/mini-search-engine-cpp)
+
+
+## Search Quality Evaluation
+
+The search engine evaluates retrieval quality using standard Information Retrieval metrics.
+
+### Evaluation Metrics
+
+- **Precision:** Measures the proportion of retrieved documents that are relevant.
+- **Recall:** Measures the proportion of relevant documents successfully retrieved.
+- **F1-Score:** Harmonic mean of precision and recall.
+
+### Sample Evaluation Results
+
+| Metric | Result |
+|---|---:|
+| True Positives | 2 |
+| False Positives | 1 |
+| False Negatives | 0 |
+| Precision | 66.67% |
+| Recall | 100% |
+| F1-Score | 80% |
+
+These results are based on a small manually labelled sample dataset.
+
+## Performance Benchmarking
+
+The benchmark evaluates indexing and search computation across different dataset sizes.
+
+It measures:
+- Indexing time
+- Total search time
+- Average search time per query
+
+The benchmark uses synthetic documents and results may vary depending on hardware and dataset characteristics.
+
+Run the benchmark using:
+
+```bash
+g++ -std=c++17 -Wall -Wextra -I include tests/benchmark.cpp src/SearchEngine.cpp -o benchmark.exe
+./benchmark.exe
+```
+
+Run the search evaluation using:
+
+```bash
+g++ -std=c++17 -Wall -Wextra -I include tests/evaluate_search.cpp src/SearchEngine.cpp -o evaluate_search.exe
+./evaluate_search.exe
+```
