@@ -1,121 +1,139 @@
 
 # C++ Mini Search Engine
 
-A console-based mini search engine developed using C++ and Data Structures and Algorithms (DSA).
+A lightweight document search engine built using C++ that demonstrates core Information Retrieval concepts, including inverted indexing, Boolean retrieval, text preprocessing, and TF-IDF ranking.
 
-The project searches through text documents using an inverted index, supports multiple-keyword queries, and ranks matching documents based on keyword frequency.
+## Overview
+
+The Mini Search Engine searches through a collection of text documents and retrieves relevant results based on user-provided keywords.
+
+It uses an inverted index to efficiently locate documents and TF-IDF scoring to rank search results by relevance.
 
 ## Features
 
-- Document loading and storage
-- Text preprocessing and normalization
-- Inverted index implementation
-- Single and multiple-keyword search
-- AND and OR Boolean search
-- Stop-word removal
-- Frequency-based document ranking
-- Search result statistics
-- Case-insensitive searching
+- **Document Loading:** Loads text documents from a local directory.
+- **Text Preprocessing:** Converts text to lowercase and removes punctuation.
+- **Stop Word Removal:** Filters common words that provide little search value.
+- **Inverted Indexing:** Maps keywords to documents and their frequencies.
+- **Boolean Retrieval:** Supports AND and OR search operations.
+- **TF-IDF Ranking:** Ranks documents based on keyword relevance.
+- **Search Statistics:** Displays index statistics.
+- **Automated Tests:** Includes assertion-based tests for core indexing functionality.
 
 ## Technologies Used
 
 - C++
+- C++17
 - Standard Template Library (STL)
-- Data Structures and Algorithms
-
-## Data Structures Used
-
-| Data Structure | Purpose |
-|---|---|
-| unordered_map | Inverted index |
-| Nested unordered_map | Stores document frequencies |
-| unordered_set | Stop-word filtering and duplicate removal |
-| vector | Stores documents and search results |
-| pair | Stores document names and scores |
+- Data Structures: Hash Maps, Hash Sets, and Vectors
+- Information Retrieval: Inverted Index and TF-IDF
 
 ## Project Structure
 
-mini-search-engine/
-│
-├── main.cpp
-├── README.md
-│
-└── documents/
-    ├── doc1.txt
-    ├── doc2.txt
-    └── doc3.txt
+    mini-search-engine/
+    ├── include/
+    │   ├── Document.h
+    │   ├── DocumentStore.h
+    │   └── SearchEngine.h
+    ├── src/
+    │   ├── DocumentStore.cpp
+    │   └── SearchEngine.cpp
+    ├── documents/
+    │   ├── doc1.txt
+    │   ├── doc2.txt
+    │   └── doc3.txt
+    ├── tests/
+    │   └── test_search.cpp
+    ├── main.cpp
+    ├── README.md
+    └── .gitignore
 
-## How to Run
+## How It Works
 
-### 1. Clone the repository
+### 1. Document Loading
+The DocumentStore class reads text files from the documents directory.
 
-git clone YOUR_GITHUB_REPOSITORY_URL
+### 2. Text Preprocessing
+Text is converted to lowercase, punctuation is removed, and common stop words are filtered.
 
-### 2. Open the project folder
+### 3. Inverted Index Construction
+The search engine creates an inverted index that stores each keyword, the documents containing it, and its frequency.
 
-cd mini-search-engine
+### 4. Query Processing
+The user enters keywords and selects either AND or OR search.
 
-### 3. Compile
+- AND Search: Retrieves documents containing all query keywords.
+- OR Search: Retrieves documents containing at least one query keyword.
 
-g++ -std=c++17 -Wall -Wextra main.cpp -o search
+### 5. Relevance Ranking
+TF-IDF (Term Frequency-Inverse Document Frequency) is used to calculate document relevance scores and rank the results.
 
-### 4. Run
+## Installation and Execution
 
-Windows:
+### Prerequisites
+
+- A C++ compiler supporting C++17
+- Git (optional)
+
+### Compile the Application
+
+Run the following command from the project root directory:
+
+```bash
+g++ -std=c++17 -Wall -Wextra -I include main.cpp src/DocumentStore.cpp src/SearchEngine.cpp -o search.exe
+```
+
+### Run the Application
+
+On Windows PowerShell:
+
+```powershell
 .\search.exe
+```
 
-Linux/macOS:
-./search
+## Running Tests
 
-## Search Modes
+Compile the test program:
 
-### OR Search
+```bash
+g++ -std=c++17 -Wall -Wextra -I include tests/test_search.cpp src/SearchEngine.cpp -o test_search.exe
+```
 
-Returns documents containing at least one of the entered keywords.
+Run the tests:
 
-Example:
-python backend
+```powershell
+.\test_search.exe
+```
 
-### AND Search
+Expected output:
 
-Returns documents containing all entered keywords.
+```text
+All 6 tests passed successfully!
+```
 
-Example:
-python backend
+## Concepts Demonstrated
 
-## Ranking Algorithm
-
-Documents are ranked using keyword frequency.
-
-The score of a document is calculated by adding the frequencies of all matching query keywords.
-
-Documents with higher scores appear first.
-
-## Complexity Analysis
-
-Let:
-- N = total number of words across all documents
-- U = number of unique indexed words
-- D = number of matching documents
-
-| Operation | Expected Complexity |
-|---|---|
-| Build inverted index | O(N) average |
-| Single keyword lookup | O(1) average |
-| Search result sorting | O(D log D) |
-| Space complexity | O(N) |
-
-Actual query processing also depends on the number of query terms and the sizes of their posting lists.
+- Object-Oriented Programming
+- Data Structures and Algorithms
+- Hash-based indexing
+- Text processing
+- Boolean Information Retrieval
+- TF-IDF ranking
+- Modular C++ project architecture
+- Basic automated testing
 
 ## Future Improvements
 
-- TF-IDF ranking
 - Phrase searching
-- File upload support
-- Persistent index storage
-- Graphical user interface
+- Wildcard searching
+- Advanced query processing
+- Search result snippets
+- Performance benchmarking
 - Larger document collections
+- More comprehensive automated tests
 
 ## Author
 
-Developed as a C++ and DSA portfolio project.
+**Nityusha Pendyala**
+
+GitHub: [Nityushapendyala](https://github.com/Nityushapendyala)
