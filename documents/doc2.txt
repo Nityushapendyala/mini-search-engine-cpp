@@ -1,0 +1,2 @@
+Python is popular for artificial intelligence.
+Python is also used for backend development.

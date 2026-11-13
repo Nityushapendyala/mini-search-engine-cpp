@@ -1,0 +1,2 @@
+Data structures and algorithms are important.
+C++ is commonly used to learn algorithms.
