@@ -12,9 +12,11 @@ using namespace std;
 
 // Clean words: lowercase and remove punctuation
 string SearchEngine::cleanWord(string word) {
+
     string result;
 
     for (char ch : word) {
+
         unsigned char c = static_cast<unsigned char>(ch);
 
         if (isalnum(c)) {
@@ -29,6 +31,10 @@ string SearchEngine::cleanWord(string word) {
 void SearchEngine::buildIndex(const vector<Document>& documents) {
 
     invertedIndex.clear();
+
+    // Store original documents for phrase searching
+    indexedDocuments = documents;
+
     totalDocuments = static_cast<int>(documents.size());
 
     for (const Document& doc : documents) {
@@ -49,7 +55,7 @@ void SearchEngine::buildIndex(const vector<Document>& documents) {
     }
 }
 
-// Calculate TF-IDF score for a term in a document
+// Calculate TF-IDF score
 double SearchEngine::calculateTFIDF(
     string word,
     string filename
@@ -79,7 +85,7 @@ double SearchEngine::calculateTFIDF(
     return tf * idf;
 }
 
-// Calculate the length of a document's TF-IDF vector
+// Calculate document vector norm
 double SearchEngine::calculateDocumentNorm(
     const string& filename
 ) {
@@ -223,8 +229,10 @@ void SearchEngine::search(string query, int mode) {
     }
 
     if (scores.empty()) {
+
         cout << "No matching documents found.\n";
         cout << "Results found: 0\n";
+
         return;
     }
 
@@ -306,4 +314,69 @@ bool SearchEngine::containsDocument(
     }
 
     return it->second.find(filename) != it->second.end();
+}
+
+// Check whether an exact phrase exists in a document
+bool SearchEngine::containsPhrase(
+    const string& phrase,
+    const string& filename
+) {
+
+    // Find the requested document
+    auto docIt = find_if(
+        indexedDocuments.begin(),
+        indexedDocuments.end(),
+        [&filename](const Document& doc) {
+            return doc.filename == filename;
+        }
+    );
+
+    if (docIt == indexedDocuments.end()) {
+        return false;
+    }
+
+    // Normalize the phrase
+    string normalizedPhrase;
+    stringstream phraseStream(phrase);
+    string word;
+
+    while (phraseStream >> word) {
+
+        word = cleanWord(word);
+
+        if (!word.empty()) {
+
+            if (!normalizedPhrase.empty()) {
+                normalizedPhrase += " ";
+            }
+
+            normalizedPhrase += word;
+        }
+    }
+
+    if (normalizedPhrase.empty()) {
+        return false;
+    }
+
+    // Normalize document content
+    string normalizedContent;
+    stringstream contentStream(docIt->content);
+
+    while (contentStream >> word) {
+
+        word = cleanWord(word);
+
+        if (!word.empty()) {
+
+            if (!normalizedContent.empty()) {
+                normalizedContent += " ";
+            }
+
+            normalizedContent += word;
+        }
+    }
+
+    // Check exact phrase
+    return normalizedContent.find(normalizedPhrase)
+           != string::npos;
 }
